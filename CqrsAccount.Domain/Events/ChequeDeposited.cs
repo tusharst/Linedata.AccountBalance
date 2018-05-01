@@ -20,8 +20,8 @@
 
         public Guid AccountId { get; set; }
 
-        public decimal DepositeAmount { get; set; }
+        public decimal DepositAmount { get; set; }
 
-        public DateTime DepositeDate { get; set; }
+        public DateTime DepositDate { get; set; }
     }
 }

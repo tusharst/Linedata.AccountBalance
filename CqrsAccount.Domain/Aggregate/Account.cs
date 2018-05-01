@@ -56,7 +56,7 @@
             });
         }
 
-        public void DepositeChequeIntoAccount(decimal depositeAmount,DateTime depositeDate, CorrelatedMessage source)
+        public void DepositChequeIntoAccount(decimal depositeAmount,DateTime depositeDate, CorrelatedMessage source)
         {
             if (depositeAmount < 0)
                 throw new ValidationException("Cheque deposit amount cannot be negative");
@@ -64,8 +64,8 @@
             Raise(new ChequeDeposited(source)
             {
                 AccountId = Id,
-                DepositeAmount = depositeAmount,
-                DepositeDate = depositeDate
+                DepositAmount = depositeAmount,
+                DepositDate = depositeDate
             });
         }
     }

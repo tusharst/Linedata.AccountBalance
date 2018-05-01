@@ -37,18 +37,18 @@
                 AccountId = _accountId,
                 AccountHolderName = "Tushar"
             };
-            var cmd = new DepositeCheque
+            var cmd = new DepositCheque
             {
                 AccountId = _accountId,
-                DepositeAmount = depositeAmount,
-                DepositeDate = depositeDate
+                DepositAmount = depositeAmount,
+                DepositDate = depositeDate
             };
 
             var ev = new ChequeDeposited(cmd)
             {
                 AccountId = _accountId,
-                DepositeAmount = depositeAmount,
-                DepositeDate = depositeDate
+                DepositAmount = depositeAmount,
+                DepositDate = depositeDate
             };
 
             await _runner.Run(
@@ -68,11 +68,11 @@
                 AccountHolderName = "Tushar"
             };
 
-            var cmd = new DepositeCheque
+            var cmd = new DepositCheque
             {
                 AccountId = _accountId,
-                DepositeAmount = depositeAmount,
-                DepositeDate = depositeDate
+                DepositAmount = depositeAmount,
+                DepositDate = depositeDate
             };
 
             await _runner.Run(
@@ -86,11 +86,11 @@
             decimal depositeAmount = 5000;
             DateTime depositeDate = System.DateTime.Now;
 
-            var cmd = new DepositeCheque
+            var cmd = new DepositCheque
             {
                 AccountId = _accountId,
-                DepositeAmount = depositeAmount,
-                DepositeDate = depositeDate
+                DepositAmount = depositeAmount,
+                DepositDate = depositeDate
             };
 
             await _runner.Run(

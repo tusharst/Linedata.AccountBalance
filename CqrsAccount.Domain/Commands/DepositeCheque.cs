@@ -3,16 +3,16 @@
     using System;
     using ReactiveDomain.Messaging;
 
-    public class DepositeCheque : Command
+    public class DepositCheque : Command
     {
-        public DepositeCheque()
+        public DepositCheque()
             : base(NewRoot())
         { }
 
         public Guid AccountId { get; set; }
 
-        public decimal DepositeAmount { get; set; }
+        public decimal DepositAmount { get; set; }
 
-        public DateTime DepositeDate { get; set; }
+        public DateTime DepositDate { get; set; }
     }
 }
