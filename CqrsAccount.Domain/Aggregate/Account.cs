@@ -13,6 +13,7 @@
             );
             Register<OverdraftLimitConfigured>(e => { });
             Register<DailyWireTransferLimitConfigured>(e => { });
+            Register<ChequeDeposited>(e => { });
         }
 
         public static Account Create(Guid id, string accountHolderName, CorrelatedMessage source)
@@ -31,7 +32,7 @@
             return account;
         }
 
-        public void SetOverdraftLimit(decimal overdraftLimit, CorrelatedMessage source)
+        public void ConfigureOverdraftLimit(decimal overdraftLimit, CorrelatedMessage source)
         {
             if(overdraftLimit < 0)
                 throw new ValidationException("Overdraft limit must be positive");
@@ -52,6 +53,19 @@
             {
                 AccountId = Id,
                 DailyWireTransferLimit = dailyWireTransferLimit
+            });
+        }
+
+        public void DepositeChequeIntoAccount(decimal depositeAmount,DateTime depositeDate, CorrelatedMessage source)
+        {
+            if (depositeAmount < 0)
+                throw new ValidationException("Cheque deposit amount cannot be negative");
+
+            Raise(new ChequeDeposited(source)
+            {
+                AccountId = Id,
+                DepositeAmount = depositeAmount,
+                DepositeDate = depositeDate
             });
         }
     }
