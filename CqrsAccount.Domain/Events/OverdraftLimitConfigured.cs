@@ -7,14 +7,14 @@
     /// <summary>
     /// Indicates that a bank account has been created.
     /// </summary>
-    public sealed class OverdraftLimitSet : Event
+    public sealed class OverdraftLimitConfigured : Event
     {
-        public OverdraftLimitSet(CorrelatedMessage source)
+        public OverdraftLimitConfigured(CorrelatedMessage source)
             : base(source)
         { }
 
         [JsonConstructor]
-        public OverdraftLimitSet(CorrelationId correlationId, SourceId sourceId)
+        public OverdraftLimitConfigured(CorrelationId correlationId, SourceId sourceId)
             : base(correlationId, sourceId)
         { }
 

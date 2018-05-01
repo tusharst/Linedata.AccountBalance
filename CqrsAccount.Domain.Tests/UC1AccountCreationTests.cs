@@ -8,12 +8,12 @@
     using Xunit.ScenarioReporting;
 
     [Collection("AggregateTest")]
-    public class AccountCreationTests : IDisposable
+    public class UC1AccountCreationTests : IDisposable
     {
         readonly Guid _accountId;
         readonly EventStoreScenarioRunner<Account> _runner;
 
-        public AccountCreationTests(EventStoreFixture fixture)
+        public UC1AccountCreationTests(EventStoreFixture fixture)
         {
             _accountId = Guid.NewGuid();
             _runner = new EventStoreScenarioRunner<Account>(

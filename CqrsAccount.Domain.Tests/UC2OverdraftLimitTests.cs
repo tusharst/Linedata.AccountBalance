@@ -8,12 +8,12 @@
     using Xunit.ScenarioReporting;
 
     [Collection("AggregateTest")]
-    public class OverdraftLimitTests : IDisposable
+    public class UC2OverdraftLimitTests : IDisposable
     {
         readonly Guid _accountId;
         readonly EventStoreScenarioRunner<Account> _runner;
 
-        public OverdraftLimitTests(EventStoreFixture fixture)
+        public UC2OverdraftLimitTests(EventStoreFixture fixture)
         {
             _accountId = Guid.NewGuid();
             _runner = new EventStoreScenarioRunner<Account>(
@@ -27,24 +27,22 @@
             _runner.Dispose();
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(10.60)]
-        [InlineData(500)]
-        public async Task CanSetOverdraftLimitOnAccount(decimal overdraftLimit)
+        [Fact]
+        public async Task CanConfigureOverdraftLimitOnAccount()
         {
+            decimal overdraftLimit = 500;
             var accountCreated = new AccountCreated(CorrelatedMessage.NewRoot())
             {
                 AccountId = _accountId,
                 AccountHolderName = "Tushar"
             };
-            var cmd = new SetOverdraftLimit
+            var cmd = new ConfigureOverdraftLimit
             {
                 AccountId = _accountId,
                 OverdraftLimit = overdraftLimit
             };
 
-            var ev = new OverdraftLimitSet(cmd)
+            var ev = new OverdraftLimitConfigured(cmd)
             {
                 AccountId = cmd.AccountId,
                 OverdraftLimit = cmd.OverdraftLimit
@@ -55,19 +53,17 @@
             );
         }
 
-        [Theory]
-        [InlineData(-10)]
-        [InlineData(-410)]
-        [InlineData(-9500)]
-        public async Task CannotSetNegativeOverdraftLimitOnAccount(decimal overdraftLimit)
+        [Fact]
+        public async Task CannotConfigureNegativeOverdraftLimitOnAccount()
         {
+            decimal overdraftLimit = -5000;
             var accountCreated = new AccountCreated(CorrelatedMessage.NewRoot())
             {
                 AccountId = _accountId,
                 AccountHolderName = "Tushar"
             };
 
-            var cmd = new SetOverdraftLimit
+            var cmd = new ConfigureOverdraftLimit
             {
                 AccountId = _accountId,
                 OverdraftLimit = overdraftLimit
@@ -78,13 +74,11 @@
             );
         }
 
-        [Theory]
-        [InlineData(-10)]
-        [InlineData(-410)]
-        [InlineData(-9500)]
-        public async Task CannotSetOverdraftLimitOnInvalidAccount(decimal overdraftLimit)
+        [Fact]
+        public async Task ConfigureOverdraftLimitShouldThrowExceptionWhenAccountIsNotPresent()
         {
-            var cmd = new SetOverdraftLimit
+            decimal overdraftLimit = 500;
+            var cmd = new ConfigureOverdraftLimit
             {
                 AccountId = _accountId,
                 OverdraftLimit = overdraftLimit

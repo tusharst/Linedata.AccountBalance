@@ -11,7 +11,8 @@
             Register<AccountCreated>(
                 e => { Id = e.AccountId; }
             );
-            Register<OverdraftLimitSet>(e => { });
+            Register<OverdraftLimitConfigured>(e => { });
+            Register<DailyWireTransferLimitConfigured>(e => { });
         }
 
         public static Account Create(Guid id, string accountHolderName, CorrelatedMessage source)
@@ -35,10 +36,22 @@
             if(overdraftLimit < 0)
                 throw new ValidationException("Overdraft limit must be positive");
 
-            Raise(new OverdraftLimitSet(source)
+            Raise(new OverdraftLimitConfigured(source)
             {
                 AccountId = Id,
                 OverdraftLimit = overdraftLimit
+            });
+        }
+
+        public void ConfigureDailyWireTransferLimit(decimal dailyWireTransferLimit, CorrelatedMessage source)
+        {
+            if (dailyWireTransferLimit < 0)
+                throw new ValidationException("Daily wire transfer limit cannot be negative");
+
+            Raise(new DailyWireTransferLimitConfigured(source)
+            {
+                AccountId = Id,
+                DailyWireTransferLimit = dailyWireTransferLimit
             });
         }
     }
