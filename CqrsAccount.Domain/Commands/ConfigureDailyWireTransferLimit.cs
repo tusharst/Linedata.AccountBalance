@@ -3,14 +3,14 @@
     using System;
     using ReactiveDomain.Messaging;
 
-    public class SetOverdraftLimit : Command
+    public class ConfigureDailyWireTransferLimit : Command
     {
-        public SetOverdraftLimit()
+        public ConfigureDailyWireTransferLimit()
             : base(NewRoot())
         { }
 
         public Guid AccountId { get; set; }
 
-        public decimal OverdraftLimit { get; set; }
+        public decimal DailyWireTransferLimit { get; set; }
     }
 }

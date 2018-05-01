@@ -7,7 +7,8 @@
 
     public sealed class AccountCommandHandler
         : IHandleCommand<CreateAccount>
-        , IHandleCommand<SetOverdraftLimit>
+        , IHandleCommand<ConfigureOverdraftLimit>
+        , IHandleCommand<ConfigureDailyWireTransferLimit>
         , IDisposable
     {
         readonly IRepository _repository;
@@ -20,7 +21,8 @@
             _disposable = new CompositeDisposable
             {
                 dispatcher.Subscribe<CreateAccount>(this),
-                dispatcher.Subscribe<SetOverdraftLimit>(this)
+                dispatcher.Subscribe<ConfigureOverdraftLimit>(this),
+                dispatcher.Subscribe<ConfigureDailyWireTransferLimit>(this)
             };
         }
 
@@ -46,7 +48,7 @@
                 return command.Fail(e);
             }
         }
-        public CommandResponse Handle(SetOverdraftLimit command)
+        public CommandResponse Handle(ConfigureOverdraftLimit command)
         {
             try
             {
@@ -54,6 +56,23 @@
                     throw new ValidationException("No account with this ID exists");
 
                  account.SetOverdraftLimit(command.OverdraftLimit, command);
+
+                _repository.Save(account);
+                return command.Succeed();
+            }
+            catch (Exception e)
+            {
+                return command.Fail(e);
+            }
+        }
+        public CommandResponse Handle(ConfigureDailyWireTransferLimit command)
+        {
+            try
+            {
+                if (!_repository.TryGetById<Account>(command.AccountId, out var account))
+                    throw new ValidationException("No account with this ID exists");
+
+                account.ConfigureDailyWireTransferLimit(command.DailyWireTransferLimit, command);
 
                 _repository.Save(account);
                 return command.Succeed();
