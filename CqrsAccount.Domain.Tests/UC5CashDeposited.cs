@@ -8,12 +8,12 @@
     using Xunit.ScenarioReporting;
 
     [Collection("AggregateTest")]
-    public class UC4CheckDepositTests : IDisposable
+    public class UC5CashDeposited : IDisposable
     {
         readonly Guid _accountId;
         readonly EventStoreScenarioRunner<Account> _runner;
 
-        public UC4CheckDepositTests(EventStoreFixture fixture)
+        public UC5CashDeposited(EventStoreFixture fixture)
         {
             _accountId = Guid.NewGuid();
             _runner = new EventStoreScenarioRunner<Account>(
@@ -28,7 +28,7 @@
         }
 
         [Fact]
-        public async Task CanDepositChequeInToValidAccount()
+        public async Task CanDepositCashInToValidAccount()
         {
             decimal depositeAmount = 5000;
             DateTime depositeDate = System.DateTime.Now;
@@ -37,18 +37,16 @@
                 AccountId = _accountId,
                 AccountHolderName = "Tushar"
             };
-            var cmd = new DepositCheque
+            var cmd = new DepositCash
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount,
-                DepositDate = depositeDate
+                DepositAmount = depositeAmount                
             };
 
-            var ev = new ChequeDeposited(cmd)
+            var ev = new CashDeposited(cmd)
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount,
-                DepositDate = depositeDate
+                DepositAmount = depositeAmount                
             };
 
             await _runner.Run(
@@ -57,7 +55,7 @@
         }
 
         [Fact]
-        public async Task ChequeDepositAmountCannotBeNegative()
+        public async Task CashDepositAmountCannotBeNegative()
         {
             decimal depositeAmount = -5000;
             DateTime depositeDate = System.DateTime.Now;
@@ -68,29 +66,27 @@
                 AccountHolderName = "Tushar"
             };
 
-            var cmd = new DepositCheque
+            var cmd = new DepositCash
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount,
-                DepositDate = depositeDate
+                DepositAmount = depositeAmount                
             };
 
             await _runner.Run(
-                def => def.Given(accountCreated).When(cmd).Throws(new ValidationException("Cheque deposit amount cannot be negative"))
+                def => def.Given(accountCreated).When(cmd).Throws(new ValidationException("Cash deposit amount cannot be negative"))
             );
         }
 
         [Fact]
-        public async Task ChequeDepositShouldThrowExceptionWhenAccountIsNotPresent()
+        public async Task CashDepositShouldThrowExceptionWhenAccountIsNotPresent()
         {
             decimal depositeAmount = 5000;
             DateTime depositeDate = System.DateTime.Now;
 
-            var cmd = new DepositCheque
+            var cmd = new DepositCash
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount,
-                DepositDate = depositeDate
+                DepositAmount = depositeAmount                
             };
 
             await _runner.Run(

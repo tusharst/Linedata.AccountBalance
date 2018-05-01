@@ -6,6 +6,8 @@
 
     public sealed class Account : EventDrivenStateMachine
     {
+        decimal accountBalance;
+
         Account()
         {
             Register<AccountCreated>(
@@ -14,6 +16,7 @@
             Register<OverdraftLimitConfigured>(e => { });
             Register<DailyWireTransferLimitConfigured>(e => { });
             Register<ChequeDeposited>(e => { });
+            Register<CashDeposited>(e => { accountBalance += e.DepositAmount;  });
         }
 
         public static Account Create(Guid id, string accountHolderName, CorrelatedMessage source)
@@ -56,16 +59,28 @@
             });
         }
 
-        public void DepositChequeIntoAccount(decimal depositeAmount,DateTime depositeDate, CorrelatedMessage source)
+        public void DepositChequeIntoAccount(decimal depositAmount,DateTime depositeDate, CorrelatedMessage source)
         {
-            if (depositeAmount < 0)
+            if (depositAmount < 0)
                 throw new ValidationException("Cheque deposit amount cannot be negative");
 
             Raise(new ChequeDeposited(source)
             {
                 AccountId = Id,
-                DepositAmount = depositeAmount,
+                DepositAmount = depositAmount,
                 DepositDate = depositeDate
+            });
+        }
+
+        public void DepositCashIntoAccount(decimal depositeAmount, CorrelatedMessage source)
+        {
+            if (depositeAmount < 0)
+                throw new ValidationException("Cash deposit amount cannot be negative");
+
+            Raise(new CashDeposited(source)
+            {
+                AccountId = Id,
+                DepositAmount = depositeAmount
             });
         }
     }
