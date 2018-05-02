@@ -6,17 +6,19 @@
 
     public sealed class Account : EventDrivenStateMachine
     {
-        decimal accountBalance;
+        decimal _accountBalance;
+        decimal _accountOverdraftLimit;
 
         Account()
         {
             Register<AccountCreated>(
                 e => { Id = e.AccountId; }
             );
-            Register<OverdraftLimitConfigured>(e => { });
+            Register<OverdraftLimitConfigured>(e => { _accountOverdraftLimit = e.OverdraftLimit;  });
             Register<DailyWireTransferLimitConfigured>(e => { });
             Register<ChequeDeposited>(e => { });
-            Register<CashDeposited>(e => { accountBalance += e.DepositAmount;  });
+            Register<CashDeposited>(e => { _accountBalance += e.DepositAmount;  });
+            Register<CashWithdrawn>(e => { _accountBalance -= e.WithdrawAmount; });
         }
 
         public static Account Create(Guid id, string accountHolderName, CorrelatedMessage source)
@@ -81,6 +83,21 @@
             {
                 AccountId = Id,
                 DepositAmount = depositeAmount
+            });
+        }
+
+        public void WithdrawCashFromAccount(decimal withdrawAmount, CorrelatedMessage source)
+        {
+            if (withdrawAmount < 0)
+                throw new ValidationException("Cash withdrawal amount cannot be negative");
+
+            if (withdrawAmount >  ( _accountBalance + _accountOverdraftLimit ) )
+                throw new ValidationException("Cash withdrawal amount cannot be greater than (account balance + account overdraftlimit) ");
+
+            Raise(new CashWithdrawn(source)
+            {
+                AccountId = Id,
+                WithdrawAmount = withdrawAmount
             });
         }
     }

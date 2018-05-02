@@ -3,15 +3,15 @@
     using System;
     using ReactiveDomain.Messaging;
 
-    public class DepositCash : Command
+    public class WithdrawCash : Command
     {
-        public DepositCash()
+        public WithdrawCash()
             : base(NewRoot())
         { }
 
         public Guid AccountId { get; set; }
 
-        public decimal DepositAmount { get; set; }
+        public decimal WithdrawAmount { get; set; }
 
     }
 }

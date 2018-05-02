@@ -11,6 +11,7 @@
         , IHandleCommand<ConfigureDailyWireTransferLimit>
         , IHandleCommand<DepositCheque>
         , IHandleCommand<DepositCash>
+        , IHandleCommand<WithdrawCash>
         , IDisposable
     {
         readonly IRepository _repository;
@@ -27,6 +28,7 @@
                 dispatcher.Subscribe<ConfigureDailyWireTransferLimit>(this),
                 dispatcher.Subscribe<DepositCheque>(this),
                 dispatcher.Subscribe<DepositCash>(this),
+                dispatcher.Subscribe<WithdrawCash>(this),
             };
         }
 
@@ -113,6 +115,23 @@
                     throw new ValidationException("No account with this ID exists");
 
                 account.DepositCashIntoAccount(command.DepositAmount, command);
+
+                _repository.Save(account);
+                return command.Succeed();
+            }
+            catch (Exception e)
+            {
+                return command.Fail(e);
+            }
+        }
+        public CommandResponse Handle(WithdrawCash command)
+        {
+            try
+            {
+                if (!_repository.TryGetById<Account>(command.AccountId, out var account))
+                    throw new ValidationException("No account with this ID exists");
+
+                account.WithdrawCashFromAccount(command.WithdrawAmount, command);
 
                 _repository.Save(account);
                 return command.Succeed();
