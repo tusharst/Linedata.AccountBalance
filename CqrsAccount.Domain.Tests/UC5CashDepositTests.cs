@@ -8,12 +8,12 @@
     using Xunit.ScenarioReporting;
 
     [Collection("AggregateTest")]
-    public class UC5CashDeposited : IDisposable
+    public class UC5CashDepositTests : IDisposable
     {
         readonly Guid _accountId;
         readonly EventStoreScenarioRunner<Account> _runner;
 
-        public UC5CashDeposited(EventStoreFixture fixture)
+        public UC5CashDepositTests(EventStoreFixture fixture)
         {
             _accountId = Guid.NewGuid();
             _runner = new EventStoreScenarioRunner<Account>(
@@ -40,13 +40,13 @@
             var cmd = new DepositCash
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount                
+                DepositAmount = depositeAmount
             };
 
             var ev = new CashDeposited(cmd)
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount                
+                DepositAmount = depositeAmount
             };
 
             await _runner.Run(
@@ -69,7 +69,7 @@
             var cmd = new DepositCash
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount                
+                DepositAmount = depositeAmount
             };
 
             await _runner.Run(
@@ -86,7 +86,7 @@
             var cmd = new DepositCash
             {
                 AccountId = _accountId,
-                DepositAmount = depositeAmount                
+                DepositAmount = depositeAmount
             };
 
             await _runner.Run(
