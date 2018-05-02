@@ -1,6 +1,7 @@
 ﻿namespace CqrsAccount.Domain
 {
     using System;
+    using NodaTime;
     using ReactiveDomain;
     using ReactiveDomain.Messaging;
 
@@ -8,17 +9,19 @@
     {
         decimal _accountBalance;
         decimal _accountOverdraftLimit;
+        decimal _accountDailyWireTransferLimit;
+        bool _isBlocked;
 
         Account()
         {
-            Register<AccountCreated>(
-                e => { Id = e.AccountId; }
-            );
+            Register<AccountCreated>( e => { Id = e.AccountId; } );
             Register<OverdraftLimitConfigured>(e => { _accountOverdraftLimit = e.OverdraftLimit;  });
-            Register<DailyWireTransferLimitConfigured>(e => { });
+            Register<DailyWireTransferLimitConfigured>(e => { _accountDailyWireTransferLimit = e.DailyWireTransferLimit;  });
             Register<ChequeDeposited>(e => { });
-            Register<CashDeposited>(e => { _accountBalance += e.DepositAmount;  });
+            Register<CashDeposited>(e => { _accountBalance += e.DepositAmount; } );
             Register<CashWithdrawn>(e => { _accountBalance -= e.WithdrawAmount; });
+            Register<AccountBlocked>(e => { _isBlocked = true; });
+            Register<AccountUnblocked>(e => { _isBlocked = false; });
         }
 
         public static Account Create(Guid id, string accountHolderName, CorrelatedMessage source)
@@ -84,6 +87,15 @@
                 AccountId = Id,
                 DepositAmount = depositeAmount
             });
+
+            if (_isBlocked)
+            {
+                Raise(new AccountUnblocked(source)
+                {
+                    AccountId = Id,
+                    Amount = depositeAmount
+                });
+            }
         }
 
         public void WithdrawCashFromAccount(decimal withdrawAmount, CorrelatedMessage source)
@@ -91,8 +103,15 @@
             if (withdrawAmount < 0)
                 throw new ValidationException("Cash withdrawal amount cannot be negative");
 
-            if (withdrawAmount >  ( _accountBalance + _accountOverdraftLimit ) )
-                throw new ValidationException("Cash withdrawal amount cannot be greater than (account balance + account overdraftlimit) ");
+            if (withdrawAmount > (_accountBalance + _accountOverdraftLimit))
+            {
+                Raise(new AccountBlocked(source)
+                {
+                    AccountId = Id,
+                    Amount = withdrawAmount
+                });
+                return;
+            }
 
             Raise(new CashWithdrawn(source)
             {
@@ -100,5 +119,23 @@
                 WithdrawAmount = withdrawAmount
             });
         }
+
+        // In progress.......
+        //public void TransferWireFund(decimal withdrawAmount, IClock clock, CorrelatedMessage source)
+        //{
+        //    if (withdrawAmount < 0)
+        //        throw new ValidationException("Transfer wire fund cannot be negative");
+
+        //    if (withdrawAmount > (_accountBalance + _accountOverdraftLimit))
+        //    {
+        //        Raise(new AccountBlocked(source)
+        //        {
+        //            AccountId = Id,
+        //            Amount = withdrawAmount
+        //        });
+        //        return;
+        //    }
+
+        //}
     }
 }
