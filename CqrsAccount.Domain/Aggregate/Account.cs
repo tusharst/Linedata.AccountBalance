@@ -103,6 +103,16 @@
             if (withdrawAmount < 0)
                 throw new ValidationException("Cash withdrawal amount cannot be negative");
 
+            if(_isBlocked)
+            {
+                Raise(new AccountBlocked(source)
+                {
+                    AccountId = Id,
+                    Amount = withdrawAmount
+                });
+                return;
+            }
+
             if (withdrawAmount > (_accountBalance + _accountOverdraftLimit))
             {
                 Raise(new AccountBlocked(source)

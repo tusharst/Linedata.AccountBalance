@@ -8,12 +8,12 @@
     using Xunit.ScenarioReporting;
 
     [Collection("AggregateTest")]
-    public class US8WithdrawalBlocksAccount : IDisposable
+    public class US8WithdrawalBlockAccount : IDisposable
     {
         readonly Guid _accountId;
         readonly EventStoreScenarioRunner<Account> _runner;
 
-        public US8WithdrawalBlocksAccount(EventStoreFixture fixture)
+        public US8WithdrawalBlockAccount(EventStoreFixture fixture)
         {
             _accountId = Guid.NewGuid();
             _runner = new EventStoreScenarioRunner<Account>(
@@ -74,7 +74,6 @@
             );
         }
 
-
         [Fact]
         public async Task CashWithdrawalGreaterThanAllowedLimit()
         {
@@ -107,6 +106,47 @@
 
             await _runner.Run(
                 def => def.Given(accountCreated, evtCashDeposited).When(cmdWithdrawCash).Then(evAccountBlocked)
+            );
+        }
+
+        [Fact]
+        public async Task CashWithdrawalWhenAccountIsBlockedShouldRaiseAccountBlockedEvent()
+        {
+            decimal withdrawAmount = 10000;            
+            decimal depositeAmount = 5000;
+
+            var accountCreated = new AccountCreated(CorrelatedMessage.NewRoot())
+            {
+                AccountId = _accountId,
+                AccountHolderName = "Tushar"
+            };
+
+            var evtCashDeposited = new CashDeposited(CorrelatedMessage.NewRoot())
+            {
+                AccountId = _accountId,
+                DepositAmount = depositeAmount
+            };
+
+            var evtCashWithdrawn = new CashWithdrawn(CorrelatedMessage.NewRoot())
+            {
+                AccountId = _accountId,
+                WithdrawAmount = withdrawAmount
+            };
+
+            var cmdWithdrawCash = new WithdrawCash()
+            {
+                AccountId = _accountId,
+                WithdrawAmount = withdrawAmount
+            };
+            
+            var evAccountBlocked = new AccountBlocked(CorrelatedMessage.NewRoot())
+            {
+                AccountId = _accountId,
+                Amount = withdrawAmount
+            };
+
+            await _runner.Run(
+                def => def.Given(accountCreated, evtCashDeposited, evtCashWithdrawn).When(cmdWithdrawCash).Then(evAccountBlocked)
             );
         }
 
