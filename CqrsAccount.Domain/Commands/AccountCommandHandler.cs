@@ -12,6 +12,7 @@
         , IHandleCommand<DepositCheque>
         , IHandleCommand<DepositCash>
         , IHandleCommand<WithdrawCash>
+        , IHandleCommand<TransferWireFund>
         , IDisposable
     {
         readonly IRepository _repository;
@@ -29,6 +30,7 @@
                 dispatcher.Subscribe<DepositCheque>(this),
                 dispatcher.Subscribe<DepositCash>(this),
                 dispatcher.Subscribe<WithdrawCash>(this),
+                dispatcher.Subscribe<TransferWireFund>(this)
             };
         }
 
@@ -132,6 +134,23 @@
                     throw new ValidationException("No account with this ID exists");
 
                 account.WithdrawCashFromAccount(command.WithdrawAmount, command);
+
+                _repository.Save(account);
+                return command.Succeed();
+            }
+            catch (Exception e)
+            {
+                return command.Fail(e);
+            }
+        }
+        public CommandResponse Handle(TransferWireFund command)
+        {
+            try
+            {
+                if (!_repository.TryGetById<Account>(command.AccountId, out var account))
+                    throw new ValidationException("No account with this ID exists");
+
+                account.TransferWireFund(command.WireFund, command);
 
                 _repository.Save(account);
                 return command.Succeed();

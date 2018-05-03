@@ -8,12 +8,12 @@
     using Xunit.ScenarioReporting;
 
     [Collection("AggregateTest")]
-    public class UC9UnblockAccountTest : IDisposable
+    public class UC7WireTransferFund : IDisposable
     {
         readonly Guid _accountId;
         readonly EventStoreScenarioRunner<Account> _runner;
 
-        public UC9UnblockAccountTest(EventStoreFixture fixture)
+        public UC7WireTransferFund(EventStoreFixture fixture)
         {
             _accountId = Guid.NewGuid();
             _runner = new EventStoreScenarioRunner<Account>(
@@ -28,59 +28,42 @@
         }
 
         [Fact]
-        public async Task ShouldUnblockOnCashDepositWhenAccountIsAlreadyBlocked()
+        public async Task CanTransferFundFromValidAccount()
         {
+            decimal WireTransferFund = 5000;
             decimal depositeAmount = 5000;
-            decimal overdraftLimit = 1000;
-            decimal withdrawAmount = 7000;
 
             var accountCreated = new AccountCreated(CorrelatedMessage.NewRoot())
             {
                 AccountId = _accountId,
                 AccountHolderName = "Tushar"
             };
-
-            var evtCashDeposited = new CashDeposited(CorrelatedMessage.NewRoot())
+            var cmdDepositCash = new DepositCash
             {
                 AccountId = _accountId,
                 DepositAmount = depositeAmount
             };
 
-            var evOverdraftLimitConfigured = new OverdraftLimitConfigured(CorrelatedMessage.NewRoot())
-            {
-                AccountId = _accountId,
-                OverdraftLimit = overdraftLimit
-            };
-
-            var evtCashWithdrawn = new CashWithdrawn(CorrelatedMessage.NewRoot())
-            {
-                AccountId = _accountId,
-                WithdrawAmount = withdrawAmount
-            };
-
-            var evAccountBlocked = new AccountBlocked(CorrelatedMessage.NewRoot())
-            {
-                AccountId = _accountId,
-                Amount = withdrawAmount
-            };
-
-            var cmd = new DepositCash()
+            var evtCashDeposited = new CashDeposited(cmdDepositCash)
             {
                 AccountId = _accountId,
                 DepositAmount = depositeAmount
             };
-
-            var evAccountUnblocked = new AccountUnblocked(CorrelatedMessage.NewRoot())
+            var cmd = new TransferWireFund()
             {
                 AccountId = _accountId,
-                Amount = depositeAmount
+                WireFund = WireTransferFund
             };
 
-            //Yet to decide how to tackle this.
+            var ev = new WireFundTransferred(cmd)
+            {
+                AccountId = _accountId,
+                WireFund = WireTransferFund
+            };
+
             await _runner.Run(
-                def => def.Given(accountCreated, evtCashDeposited, evOverdraftLimitConfigured, evtCashWithdrawn, evAccountBlocked).When(cmd).Then(evAccountUnblocked)
+                def => def.Given(accountCreated, evtCashDeposited).When(cmd).Then(ev)
             );
         }
-
     }
 }

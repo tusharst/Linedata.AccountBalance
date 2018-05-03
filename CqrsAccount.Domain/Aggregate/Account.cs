@@ -22,6 +22,7 @@
             Register<CashWithdrawn>(e => { _accountBalance -= e.WithdrawAmount; });
             Register<AccountBlocked>(e => { _isBlocked = true; });
             Register<AccountUnblocked>(e => { _isBlocked = false; });
+            Register<WireFundTransferred>(e => { _accountBalance -= e.WireFund; });
         }
 
         public static Account Create(Guid id, string accountHolderName, CorrelatedMessage source)
@@ -130,22 +131,29 @@
             });
         }
 
-        // In progress.......
-        //public void TransferWireFund(decimal withdrawAmount, IClock clock, CorrelatedMessage source)
-        //{
-        //    if (withdrawAmount < 0)
-        //        throw new ValidationException("Transfer wire fund cannot be negative");
 
-        //    if (withdrawAmount > (_accountBalance + _accountOverdraftLimit))
-        //    {
-        //        Raise(new AccountBlocked(source)
-        //        {
-        //            AccountId = Id,
-        //            Amount = withdrawAmount
-        //        });
-        //        return;
-        //    }
+        public void TransferWireFund(decimal wireFund,  CorrelatedMessage source)
+        {
+            //In progress
+            if (wireFund < 0)
+                throw new ValidationException("Transfer wire fund cannot be negative");
 
-        //}
+            if (wireFund > (_accountBalance + _accountOverdraftLimit))
+            {
+                Raise(new AccountBlocked(source)
+                {
+                    AccountId = Id,
+                    Amount = wireFund
+                });
+                return;
+            }
+
+            Raise(new WireFundTransferred(source)
+            {
+                AccountId = Id,
+                WireFund = wireFund
+            });
+
+        }
     }
 }
